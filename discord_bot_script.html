@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Message Scheduler</title>
+    <style>
+        .form-entry {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Discord Message Scheduler</h1>
+    <form id="scheduler-form">
+        <div class="form-entry">
+            <label for="token">Token:</label>
+            <input type="text" id="token" name="token" required>
+        </div>
+        <div class="form-entry">
+            <label for="channel-id">Channel ID:</label>
+            <input type="text" id="channel-id" name="channel-id" required>
+        </div>
+        <div class="form-entry">
+            <label for="message">Message:</label>
+            <input type="text" id="message" name="message" required>
+        </div>
+        <div class="form-entry">
+            <label for="time">Time (YYYY-MM-DD HH:MM:SS):</label>
+            <input type="text" id="time" name="time" required>
+        </div>
+        <button type="button" onclick="addEntry()">Add Another Entry</button>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="entries"></div>
+
+    <script>
+        function addEntry() {
+            const formEntry = document.createElement('div');
+            formEntry.classList.add('form-entry');
+            formEntry.innerHTML = `
+                <label for="token">Token:</label>
+                <input type="text" name="token" required>
+                <label for="channel-id">Channel ID:</label>
+                <input type="text" name="channel-id" required>
+                <label for="message">Message:</label>
+                <input type="text" name="message" required>
+                <label for="time">Time (YYYY-MM-DD HH:MM:SS):</label>
+                <input type="text" name="time" required>
+                <button type="button" onclick="removeEntry(this)">Remove</button>
+            `;
+            document.getElementById('entries').appendChild(formEntry);
+        }
+
+        function removeEntry(button) {
+            button.parentElement.remove();
+        }
+
+        document.getElementById('scheduler-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const entries = [];
+            const formData = new FormData(event.target);
+
+            for (let [name, value] of formData.entries()) {
+                const index = Math.floor(entries.length / 4);
+                if (!entries[index]) {
+                    entries[index] = {};
+                }
+                entries[index][name] = value;
+            }
+
+            fetch('/schedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(entries),
+            }).then(response => response.json()).then(data => {
+                alert('Messages scheduled successfully!');
+            }).catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
